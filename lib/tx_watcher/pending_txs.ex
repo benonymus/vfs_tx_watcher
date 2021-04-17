@@ -9,6 +9,9 @@ defmodule TxWatcher.PendingTxs do
     @moduledoc """
     State of TxWatcher.PendingTxs
     """
+    @type t :: %__MODULE__{
+            pending_txs: list()
+          }
     defstruct pending_txs: []
   end
 
@@ -91,7 +94,7 @@ defmodule TxWatcher.PendingTxs do
     {:noreply, put_timer_ref(state, tx_id, updated_pending_txs)}
   end
 
-  @spec put_timer_ref(State.t(), String.t(), list(String.t())) :: State.t()
+  @spec put_timer_ref(term(), String.t(), list(String.t())) :: term()
   defp put_timer_ref(state, tx_id, pending_txs) do
     timer_ref = Process.send_after(self(), {:pending, tx_id}, @pending_time)
     %State{state | pending_txs: [{tx_id, timer_ref} | pending_txs]}
