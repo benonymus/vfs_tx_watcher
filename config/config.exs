@@ -24,9 +24,12 @@ config :logger, :console,
 config :phoenix, :json_library, Jason
 
 config :tx_watcher,
+  http_client: :httpc,
+  blocknative_api_url: 'https://api.blocknative.com/transaction',
   blocknative_api_key: "fdc669c2-86de-4d36-aee2-1682f66b2a43",
   slack_webhook_url:
-    "https://hooks.slack.com/services/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"
+    "https://hooks.slack.com/services/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",
+  pending_time: 1_000
 
 # Import environment specific config. This must remain at the bottom
 # of this file so it overrides the configuration defined above.

@@ -1,14 +1,22 @@
 defmodule TxWatcher.PendingTxs do
+  @moduledoc """
+  Genserver for the pending transactions
+  """
   use GenServer
 
   # the state itself could just be the list
   defmodule TxWatcher.State do
+    @moduledoc """
+    State of TxWatcher.PendingTxs
+    """
     defstruct pending_txs: []
   end
 
   alias TxWatcher.State
 
+  @http_client Application.compile_env!(:tx_watcher, :http_client)
   @slack_webhook_url Application.compile_env!(:tx_watcher, :slack_webhook_url)
+  @pending_time Application.compile_env!(:tx_watcher, :pending_time)
 
   def child_spec() do
     %{
@@ -24,6 +32,11 @@ defmodule TxWatcher.PendingTxs do
   @spec get() :: {:ok, list(String.t())}
   def get() do
     GenServer.call(__MODULE__, :get)
+  end
+
+  @spec __clear__() :: :ok
+  def __clear__() do
+    GenServer.call(__MODULE__, :clear)
   end
 
   @spec add_registered(String.t()) :: :ok
@@ -44,6 +57,11 @@ defmodule TxWatcher.PendingTxs do
   @impl GenServer
   def handle_call(:get, _, %State{pending_txs: pending_txs} = state) do
     {:reply, {:ok, pending_txs}, state}
+  end
+
+  @impl GenServer
+  def handle_call(:clear, _, _state) do
+    {:reply, :ok, %State{pending_txs: []}}
   end
 
   @impl GenServer
@@ -75,7 +93,7 @@ defmodule TxWatcher.PendingTxs do
 
   @spec put_timer_ref(State.t(), String.t(), list(String.t())) :: State.t()
   defp put_timer_ref(state, tx_id, pending_txs) do
-    timer_ref = Process.send_after(self(), {:pending, tx_id}, 120_000)
+    timer_ref = Process.send_after(self(), {:pending, tx_id}, @pending_time)
     %State{state | pending_txs: [{tx_id, timer_ref} | pending_txs]}
   end
 
@@ -99,7 +117,7 @@ defmodule TxWatcher.PendingTxs do
   defp msg_to_slack(_, _), do: :ok
 
   def send_msg(msg) do
-    :httpc.request(
+    @http_client.request(
       :post,
       {@slack_webhook_url, [], 'application/json',
        Jason.encode!(%{
@@ -108,6 +126,5 @@ defmodule TxWatcher.PendingTxs do
       [],
       []
     )
-    |> IO.inspect()
   end
 end

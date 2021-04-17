@@ -1,5 +1,5 @@
 defmodule TxWatcherWeb.ErrorViewTest do
-  use TxWatcherWeb.ConnCase, async: true
+  use TxWatcherWeb.ConnCase
 
   # Bring render/3 and render_to_string/3 for testing custom views
   import Phoenix.View

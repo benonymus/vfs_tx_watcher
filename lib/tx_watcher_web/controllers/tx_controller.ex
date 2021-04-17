@@ -7,6 +7,8 @@ defmodule TxWatcherWeb.TxsController do
   alias TxWatcherWeb.TxView
   alias TxWatcher.PendingTxs
 
+  @http_client Application.compile_env!(:tx_watcher, :http_client)
+  @blocknative_api_url Application.compile_env!(:tx_watcher, :blocknative_api_url)
   @blocknative_api_key Application.compile_env!(:tx_watcher, :blocknative_api_key)
 
   @doc """
@@ -40,9 +42,9 @@ defmodule TxWatcherWeb.TxsController do
   end
 
   def register_tx(tx_id) do
-    :httpc.request(
+    @http_client.request(
       :post,
-      {'https://api.blocknative.com/transaction', [], 'application/json',
+      {@blocknative_api_url, [], 'application/json',
        Jason.encode!(%{
          apiKey: @blocknative_api_key,
          hash: tx_id,
