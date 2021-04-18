@@ -5,11 +5,7 @@ defmodule TxWatcherWeb.TxsController do
   use TxWatcherWeb, :controller
 
   alias TxWatcherWeb.TxView
-  alias TxWatcher.PendingTxs
-
-  @http_client Application.compile_env!(:tx_watcher, :http_client)
-  @blocknative_api_url Application.compile_env!(:tx_watcher, :blocknative_api_url)
-  @blocknative_api_key Application.compile_env!(:tx_watcher, :blocknative_api_key)
+  alias TxWatcher.{ExternalRequests, PendingTxs}
 
   @doc """
   List pending txs
@@ -37,23 +33,9 @@ defmodule TxWatcherWeb.TxsController do
 
   def register_txs(tx_ids) do
     Enum.each(tx_ids, fn tx_id ->
-      Task.start(__MODULE__, :register_tx, [tx_id])
+      ExternalRequests.register_tx(tx_id)
+      Task.start(TxWatcher.ExternalRequests, :register_tx, [tx_id])
     end)
-  end
-
-  def register_tx(tx_id) do
-    @http_client.request(
-      :post,
-      {@blocknative_api_url, [], 'application/json',
-       Jason.encode!(%{
-         apiKey: @blocknative_api_key,
-         hash: tx_id,
-         blockchain: "ethereum",
-         network: "main"
-       })},
-      [],
-      []
-    )
   end
 
   @doc """

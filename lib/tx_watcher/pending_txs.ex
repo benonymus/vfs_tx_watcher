@@ -3,9 +3,10 @@ defmodule TxWatcher.PendingTxs do
   Genserver for the pending transactions
   """
   use GenServer
+  alias TxWatcher.ExternalRequests
 
   # the state itself could just be the list
-  defmodule TxWatcher.State do
+  defmodule State do
     @moduledoc """
     State of TxWatcher.PendingTxs
     """
@@ -15,10 +16,8 @@ defmodule TxWatcher.PendingTxs do
     defstruct pending_txs: []
   end
 
-  alias TxWatcher.State
+  alias State
 
-  @http_client Application.compile_env!(:tx_watcher, :http_client)
-  @slack_webhook_url Application.compile_env!(:tx_watcher, :slack_webhook_url)
   @pending_time Application.compile_env!(:tx_watcher, :pending_time)
 
   def child_spec() do
@@ -69,14 +68,14 @@ defmodule TxWatcher.PendingTxs do
 
   @impl GenServer
   def handle_cast({:add, tx_id}, %State{pending_txs: pending_txs} = state) do
-    msg_to_slack(:registered, tx_id)
+    build_message(:registered, tx_id)
 
     {:noreply, put_timer_ref(state, tx_id, pending_txs)}
   end
 
   @impl GenServer
   def handle_cast({:remove, tx_id}, %State{pending_txs: pending_txs} = state) do
-    msg_to_slack(:confirmed, tx_id)
+    build_message(:confirmed, tx_id)
 
     {_tx_id, timer_ref} = Enum.find(pending_txs, {nil, nil}, fn {x, _} -> x == tx_id end)
 
@@ -87,7 +86,7 @@ defmodule TxWatcher.PendingTxs do
 
   @impl GenServer
   def handle_info({:pending, tx_id}, %State{pending_txs: pending_txs} = state) do
-    msg_to_slack(:pending, tx_id)
+    build_message(:pending, tx_id)
 
     updated_pending_txs = Enum.reject(pending_txs, fn {x, _} -> x == tx_id end)
 
@@ -100,8 +99,8 @@ defmodule TxWatcher.PendingTxs do
     %State{state | pending_txs: [{tx_id, timer_ref} | pending_txs]}
   end
 
-  @spec msg_to_slack(atom(), String.t()) :: {:ok, pid()}
-  defp msg_to_slack(type, tx_id) when type in [:registered, :pending, :confirmed] do
+  @spec build_message(atom(), String.t()) :: {:ok, pid()}
+  defp build_message(type, tx_id) when type in [:registered, :pending, :confirmed] do
     msg =
       case type do
         :registered ->
@@ -114,20 +113,8 @@ defmodule TxWatcher.PendingTxs do
           "Confirmed: #{tx_id}"
       end
 
-    Task.start(__MODULE__, :send_msg, [msg])
+    ExternalRequests.send_msg_to_slack(msg)
   end
 
-  defp msg_to_slack(_, _), do: :ok
-
-  def send_msg(msg) do
-    @http_client.request(
-      :post,
-      {@slack_webhook_url, [], 'application/json',
-       Jason.encode!(%{
-         text: msg
-       })},
-      [],
-      []
-    )
-  end
+  defp build_message(_, _), do: :ok
 end
