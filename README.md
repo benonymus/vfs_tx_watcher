@@ -70,7 +70,7 @@ There is credo and dialyzer in the project for code quality checks.
 
 ## Docker
 
-The container is more towards local development in docker than deployment,
+The container is more towards local development(due to it being my personal image) in docker than deployment,
 of course it could be easily adjusted and deployed by changing the defined environment,
 but a lighter image without the dev tools would be the best for that.
 
@@ -83,6 +83,7 @@ https://dockyard.com/blog/2019/04/02/three-simple-patterns-for-retrying-jobs-in-
 Functionality wise it would be similar but it would give a more complete overview of what is happening.
 
 Could add Logger logs to follow the flow inside the project.
+
 More test cases would be possible around the retry mechanism.
 
 I noticed that you can request the transactions from Blocknative that you you have subscribed to before,
