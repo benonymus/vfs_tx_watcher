@@ -1,0 +1,14 @@
+version: "3"
+
+services:
+  tx_watcher:
+    container_name: "tx_watcher_dev"
+    image: docker.io/benonymus/elixir_docker:1.11
+    command: mix phx.server
+    environment:
+      - MIX_ENV=dev
+    volumes:
+      - .:/app
+    working_dir: /app
+    ports:
+      - "4000:4000"
