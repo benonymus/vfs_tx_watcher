@@ -23,19 +23,12 @@ defmodule TxWatcherWeb.TxsController do
   Add txs to be watched
   """
   def watch_txs(conn, %{"tx_ids" => tx_ids}) do
-    Task.start(__MODULE__, :register_txs, [tx_ids])
+    Task.start(ExternalRequests, :register_txs, [tx_ids])
 
     conn
     |> put_status(200)
     |> put_view(TxView)
     |> render("200.json", message: "Received txs!")
-  end
-
-  def register_txs(tx_ids) do
-    Enum.each(tx_ids, fn tx_id ->
-      ExternalRequests.register_tx(tx_id)
-      Task.start(TxWatcher.ExternalRequests, :register_tx, [tx_id])
-    end)
   end
 
   @doc """

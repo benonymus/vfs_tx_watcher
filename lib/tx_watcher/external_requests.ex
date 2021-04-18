@@ -40,9 +40,11 @@ defmodule TxWatcher.ExternalRequests do
 
   def send_msg_to_slack_logic(_, _), do: :ok
 
-  @spec register_tx(String.t()) :: {:ok, pid()}
-  def register_tx(tx_id) do
-    Task.start(__MODULE__, :register_tx_logic, [tx_id])
+  @spec register_txs(list(String.t())) :: :ok
+  def register_txs(tx_ids) do
+    Enum.each(tx_ids, fn tx_id ->
+      Task.start(__MODULE__, :register_tx_logic, [tx_id])
+    end)
   end
 
   @spec register_tx_logic(String.t(), integer()) :: :ok
