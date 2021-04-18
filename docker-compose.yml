@@ -4,9 +4,9 @@ services:
   tx_watcher:
     container_name: "tx_watcher_dev"
     image: docker.io/benonymus/elixir_docker:1.11
-    command: mix phx.server
-    environment:
-      - MIX_ENV=dev
+    command: mix do deps.get, phx.server
+    env_file:
+      - .env
     volumes:
       - .:/app
     working_dir: /app

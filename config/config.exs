@@ -26,9 +26,8 @@ config :phoenix, :json_library, Jason
 config :tx_watcher,
   http_client: :httpc,
   blocknative_api_url: 'https://api.blocknative.com/transaction',
-  blocknative_api_key: "fdc669c2-86de-4d36-aee2-1682f66b2a43",
-  slack_webhook_url:
-    "https://hooks.slack.com/services/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",
+  blocknative_api_key: System.get_env("BLOCKNATIVE_API_KEY"),
+  slack_webhook_url: System.get_env("SLACK_WEBHOOK_URL"),
   pending_time: 120_000
 
 # Import environment specific config. This must remain at the bottom
