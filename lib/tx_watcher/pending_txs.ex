@@ -33,6 +33,7 @@ defmodule TxWatcher.PendingTxs do
 
   @spec get() :: {:ok, list(String.t())}
   def get() do
+    IO.puts("here")
     GenServer.call(__MODULE__, :get)
   end
 
